@@ -1,0 +1,115 @@
+/* Custom Fonts and Variables */
+:root {
+    --primary-bg: #94c3c3;
+    --secondary-bg: #9ad9d987;
+    --soft-gray: #f4f7f700;
+}
+
+body {
+    /* Updated Gradient background from your requested colors */
+    background: linear-gradient(180deg, 
+        rgba(30, 30, 30, 0.03) 0%, 
+        var(--primary-bg) 0%, 
+        var(--primary-bg) 20%, 
+        var(--secondary-bg) 70%,
+        var(--soft-gray) 100%);
+    font-family: 'Inter', -apple-system, sans-serif;
+    color: #334155;
+}
+
+/* Updated Glass Card: Higher opacity (0.55) for less transparency, matte finish */
+.glass-card {
+    background: rgba(255, 255, 255, 0.55);
+    backdrop-filter: blur(16px) saturate(180%);
+    -webkit-backdrop-filter: blur(16px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
+}
+
+.white-card {
+    background: #ffffffea;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.03);
+}
+
+/* Category Tab Buttons */
+.tab-btn {
+    @apply px-6 py-2 rounded-full whitespace-nowrap transition-all font-medium text-xs;
+    background: rgba(255, 255, 255, 0.3);
+    color: #475569;
+}
+
+.tab-btn.active {
+    @apply bg-white text-slate-900 shadow-sm;
+}
+
+/* Premium Toggle Switch Customization */
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 46px;
+    height: 23px;
+}
+
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: #cbd5e1;
+    transition: .4s;
+    border-radius: 23px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 17px; width: 17px;
+    left: 3px; bottom: 3px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+input:checked + .slider {
+    background-color: #22c55e; /* Premium Green */
+}
+
+input:checked + .slider:before {
+    transform: translateX(23px);
+}
+
+/* Sensor Footer with white radial gradient and sờn đục effect */
+.sensor-footer {
+    background: radial-gradient(circle at center, rgba(255,255,255,0.85) 0%, rgba(255,255,255,0.4) 100%);
+    border-top: 1px solid rgba(255,255,255,0.3);
+}
+
+/* Hide scrollbar for category tabs */
+.overflow-x-auto::-webkit-scrollbar {
+    display: none;
+}
+
+#big-temp {
+    font-variant-numeric: tabular-nums;
+    text-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.weather-image-frame img {
+    filter: drop-shadow(0 10px 15px rgba(255, 255, 255, 0.2));
+    transition: transform 0.5s ease;
+}
+
+.weather-image-frame:hover img {
+    transform: scale(1.05);
+}
+
+canvas {
+    filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.02));
+}
