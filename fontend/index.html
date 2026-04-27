@@ -45,51 +45,64 @@
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 flex-grow">
-                    <div class="white-card p-5 rounded-[2.5rem] flex flex-col justify-between h-56 transition-all hover:scale-[1.02]">
+                    <div class="white-card p-5 rounded-[2.5rem] flex flex-col justify-between h-64 transition-all hover:scale-[1.02]">
                         <div class="w-full h-24 flex items-center justify-center mb-2 overflow-hidden">
                             <img src="assets/smart_lamp.png" alt="Lamp" class="h-full object-contain">
                         </div>
-                        <div class="px-2">
-                            <h4 class="font-bold text-lg leading-tight">Smart Lamp</h4>
+                        <div class="px-2 text-center mb-4"> <h4 class="font-bold text-lg leading-tight">Smart Lamp</h4>
                             <p class="text-[10px] text-slate-400 uppercase tracking-tighter">RGB Light</p>
                         </div>
-                        <div class="px-2 pb-1">
-                            <label class="toggle-switch">
-                                <input type="checkbox" onchange="toggle('led', this)">
-                                <span class="slider"></span>
-                            </label>
+                        <div class="flex justify-center pb-3"> <div class="outer-frame flex items-center justify-center" style="width: 197px; height: 36px;">
+                                <div class="mode-frame flex items-center justify-between" style="width: 192px; height: 32px;">
+                                    <button onclick="setMode('led', 0)" class="mode-btn active" data-device="led" data-val="0">0</button>
+                                    <button onclick="setMode('led', 1)" class="mode-btn" data-device="led" data-val="1">1</button>
+                                    <button onclick="setMode('led', 2)" class="mode-btn" data-device="led" data-val="2">2</button>
+                                    <button onclick="setMode('led', 3)" class="mode-btn" data-device="led" data-val="3">3</button>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="white-card p-5 rounded-[2.5rem] flex flex-col justify-between h-56 transition-all hover:scale-[1.02]">
+                    <div class="white-card p-5 rounded-[2.5rem] flex flex-col justify-between h-64 transition-all hover:scale-[1.02]">
                         <div class="w-full h-24 flex items-center justify-center mb-2 overflow-hidden">
                             <img src="assets/smart_fan.png" alt="Fan" class="h-full object-contain">
                         </div>
-                        <div class="px-2">
+                        <div class="px-2 text-center mb-4">
                             <h4 class="font-bold text-lg leading-tight">Smart Fan</h4>
                             <p class="text-[10px] text-slate-400 uppercase tracking-tighter">PWM Control</p>
                         </div>
-                        <div class="px-2 pb-1">
-                            <label class="toggle-switch">
-                                <input type="checkbox" onchange="toggle('fan', this)">
-                                <span class="slider"></span>
-                            </label>
+                        <div class="flex justify-center pb-3">
+                            <div class="outer-frame flex items-center justify-center" style="width: 197px; height: 36px;">
+                                <div class="mode-frame flex items-center justify-between" style="width: 192px; height: 32px;">
+                                    <button onclick="setMode('fan', 4)" class="mode-btn active" data-device="fan" data-val="4">0</button>
+                                    <button onclick="setMode('fan', 5)" class="mode-btn" data-device="fan" data-val="5">1</button>
+                                    <button onclick="setMode('fan', 6)" class="mode-btn" data-device="fan" data-val="6">2</button>
+                                    <button onclick="setMode('fan', 7)" class="mode-btn" data-device="fan" data-val="7">3</button>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="white-card p-5 rounded-[2.5rem] flex flex-col justify-between h-56 transition-all hover:scale-[1.02]">
+                    <div class="white-card p-5 rounded-[2.5rem] flex flex-col justify-between h-64 transition-all hover:scale-[1.02]">
                         <div class="w-full h-24 flex items-center justify-center mb-2 overflow-hidden">
                             <img src="assets/smart_lock.png" id="servo-img" alt="Gate" class="h-full object-contain">
                         </div>
-                        <div class="px-2">
+                        <div class="px-2 text-center mb-4">
                             <h4 class="font-bold text-lg leading-tight">Smart Lock</h4>
                             <p class="text-[10px] text-slate-400 uppercase tracking-tighter">Servo Simulation</p>
                         </div>
-                        <div class="px-2 pb-1">
-                            <label class="toggle-switch">
-                                <input type="checkbox" onchange="toggle('servo', this)">
-                                <span class="slider"></span>
-                            </label>
+                        <div class="flex justify-center pb-3">
+                            <div class="outer-frame flex items-center justify-center" style="width: 197px; height: 36px;">
+                                <div class="mode-frame" style="width: 197px; height: 36px;">
+                                    <button id="lock-btn" 
+                                            onmousedown="servoControl(9)" 
+                                            onmouseup="servoControl(8)" 
+                                            onmouseleave="servoControl(8)"
+                                            class="servo-press-btn transition-all">
+                                        Press to unlock
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -97,17 +110,14 @@
 
             <div class="lg:col-span-4 h-full">
                 <div class="glass-card rounded-[2.5rem] flex flex-col h-full relative overflow-hidden">
-                    
                     <div class="weather-image-frame w-full h-40 flex items-center justify-center">
                         <img src="assets/toppng.com-real-sun-and-clouds-5000x3232.png" alt="Weather" class="h-25 object-contain opacity-80 mt-4">
                     </div>
-
                     <div class="flex-grow flex flex-col justify-center items-center text-center px-8 z-10 py-4">
                         <div class="text-slate-700 text-base font-medium mb-1" id="current-date">--/--</div>
                         <div class="text-8xl font-light tracking-tight"><span id="big-temp">00</span>°</div>
                         <div class="text-slate-500 font-medium">Indoor temperature</div>
                     </div>
-
                     <div class="sensor-footer p-8 rounded-b-[2.5rem] w-full mt-auto">
                         <div class="grid grid-cols-2 gap-6 text-slate-700">
                             <div>
@@ -124,7 +134,6 @@
             </div>
         </div>
     </div>
-
     <script src="script.js"></script>
 </body>
 </html>
