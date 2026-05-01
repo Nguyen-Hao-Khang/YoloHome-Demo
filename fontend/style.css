@@ -1,4 +1,4 @@
-/* Custom Fonts and Variables */
+/* Variables & Base */
 :root {
     --primary-bg: #94c3c3;
     --secondary-bg: #9ad9d987;
@@ -11,10 +11,10 @@ body {
     color: #334155;
 }
 
+/* Glassmorphism Cards */
 .glass-card {
     background: rgba(255, 255, 255, 0.55);
     backdrop-filter: blur(16px) saturate(180%);
-    -webkit-backdrop-filter: blur(16px) saturate(180%);
     border: 1px solid rgba(255, 255, 255, 0.5);
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
 }
@@ -25,6 +25,7 @@ body {
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.03);
 }
 
+/* Device Controls */
 .outer-frame {
     background-color: #e2e8f0;
     border-radius: 17px;
@@ -60,25 +61,142 @@ body {
     box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 }
 
-.servo-press-btn {
-    width: 100%;
-    height: 100%;
-    background-color: #e2e8f0; 
-    border-radius: 17px;
-    color: #64748b;
+/* Mode Slider - Thanh trượt chọn mode đèn/quạt */
+.mode-slider-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mode-slider {
+    position: absolute;
+    width: 192px;
+    height: 36px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: transparent;
+    cursor: pointer;
+    z-index: 2;
+}
+
+.mode-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 48px;
+    height: 28px;
+    background: transparent;
+    cursor: pointer;
+}
+
+.mode-slider::-moz-range-thumb {
+    width: 48px;
+    height: 28px;
+    background: transparent;
     border: none;
     cursor: pointer;
+}
+
+.mode-slider-track {
+    position: absolute;
+    width: 192px;
+    height: 32px;
+    background-color: #e2e8f0;
+    border-radius: 16px;
+    overflow: hidden;
+    top: 2px;
+}
+
+.mode-slider-thumb {
+    position: absolute;
+    width: 48px;
+    height: 28px;
+    background-color: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    top: 2px;
+    left: 2px;
+    transition: left 0.2s ease;
+}
+
+#led-slider[data-value="0"] ~ .mode-slider-track .mode-slider-thumb,
+#fan-slider[data-value="0"] ~ .mode-slider-track .mode-slider-thumb { left: 2px; }
+#led-slider[data-value="1"] ~ .mode-slider-track .mode-slider-thumb,
+#fan-slider[data-value="1"] ~ .mode-slider-track .mode-slider-thumb { left: 48px; }
+#led-slider[data-value="2"] ~ .mode-slider-track .mode-slider-thumb,
+#fan-slider[data-value="2"] ~ .mode-slider-track .mode-slider-thumb { left: 95px; }
+#led-slider[data-value="3"] ~ .mode-slider-track .mode-slider-thumb,
+#fan-slider[data-value="3"] ~ .mode-slider-track .mode-slider-thumb { left: 142px; }
+
+.mode-labels {
+    position: absolute;
+    width: 192px;
+    display: flex;
+    justify-content: space-between;
+    padding: 0 4px;
+    top: 2px;
+}
+
+.mode-labels span {
     font-size: 10px;
     font-weight: bold;
-    text-transform: uppercase;
+    color: #64748b;
+    width: 48px;
+    text-align: center;
+    line-height: 32px;
 }
 
-.servo-press-btn:active {
-    background-color: #22c55e !important;
-    color: #ffffff !important;
+/* Smart Lock Toggle - Custom 197x36 with pill-shaped knob */
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 157px;
+    height: 32px;
 }
 
-/* Sensor Footer */
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: #e2e8f0;
+    transition: 0.3s ease;
+    border-radius: 18px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 27px;
+    width: 66px;
+    left: 4px;
+    top: 2px;
+    background-color: white;
+    transition: 0.3s ease;
+    border-radius: 16px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+}
+
+input:checked + .slider {
+    background-color: #22c55e;
+}
+
+input:checked + .slider:before {
+    transform: translateX(84px);
+}
+
+/* Auth Mapping Colors */
+.status-10 { color: #94a3b8; font-weight: 600; } /* Gray - No Motion */
+.status-11 { color: #3b82f6; font-weight: 800; } /* Blue - Welcome */
+.status-12 { color: #f59e0b; font-weight: 800; } /* Yellow - Verifying */
+.status-13 { color: #22c55e; font-weight: 800; } /* Green - Success */
+.status-14 { color: #ef4444; font-weight: 800; } /* Red - Failed */
+
+/* Misc */
 .sensor-footer {
     background: radial-gradient(circle at center, rgba(255,255,255,0.85) 0%, rgba(255,255,255,0.4) 100%);
     border-top: 1px solid rgba(255,255,255,0.3);

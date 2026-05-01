@@ -1,5 +1,6 @@
 const API_URL = "http://localhost:8000";
 let tChart, hChart;
+let isServoOpen = false; 
 
 function initCharts() {
     const commonOptions = {
@@ -20,8 +21,7 @@ function initCharts() {
                 backgroundColor: 'rgba(255, 255, 255, 0.9)',
                 titleColor: '#64748b', bodyColor: '#1e293b',
                 borderWidth: 1, borderColor: '#e2e8f0',
-                padding: 10, displayColors: false,
-                callbacks: { label: (context) => ` Giá trị: ${context.parsed.y}` }
+                callbacks: { label: (context) => ` Value: ${context.parsed.y}` }
             }
         },
         elements: { 
@@ -48,50 +48,104 @@ async function fetchData() {
         const res = await fetch(`${API_URL}/data`);
         const data = await res.json();
         
+        // 1. Cập nhật Text Sensors
         if(document.getElementById('big-temp')) document.getElementById('big-temp').innerText = data.temp;
         if(document.getElementById('header-temp')) document.getElementById('header-temp').innerText = data.temp + "°";
         if(document.getElementById('header-humi')) document.getElementById('header-humi').innerText = data.humi + "%";
-        if(document.getElementById('dist-val')) document.getElementById('dist-val').innerText = data.dist;
         if(document.getElementById('light-val')) document.getElementById('light-val').innerText = data.light;
 
-        // Sync Mode UI
-        if (data.led !== undefined) updateActiveUI('led', data.led);
-        if (data.fan !== undefined) updateActiveUI('fan', data.fan);
+        // 2. Suy luận UI (UI Inference)
+        const pirElement = document.getElementById('pir-val');
+        let overrideLed = null;
+        let overrideServo = null;
 
-        // Sync Servo Image
-        const gateImg = document.getElementById('servo-img');
-        if (gateImg) {
-            gateImg.src = (parseInt(data.servo) === 9) ? 'assets/smart_lock_open.png' : 'assets/smart_lock.png';
+        if (pirElement && data.auth !== undefined) {
+            const authVal = parseInt(data.auth);
+            switch (authVal) {
+                case 10:
+                    pirElement.innerText = "NO MOTION";
+                    pirElement.className = "status-10";
+                    break;
+                case 11:
+                    pirElement.innerText = "MOTION DETECTED (WELCOME)";
+                    pirElement.className = "status-11";
+                    break;
+                case 12:
+                    pirElement.innerText = "VERIFYING FACE...";
+                    pirElement.className = "status-12";
+                    overrideLed = 1; // White light - LED mode 1
+                    break;
+                case 13:
+                    pirElement.innerText = "AUTH SUCCESS - UNLOCKED";
+                    pirElement.className = "status-13";
+                    overrideLed = 2; // Green light - LED mode 2
+                    overrideServo = 9; 
+                    break;
+                case 14:
+                    pirElement.innerText = "AUTH FAILED - ACCESS DENIED";
+                    pirElement.className = "status-14";
+                    overrideLed = 3; // Red light - LED mode 3
+                    break;
+                default:
+                    pirElement.innerText = "UNKNOWN STATUS";
+                    pirElement.className = "status-10";
+            }
         }
 
+        // 3. Đồng bộ thanh trượt Đèn (LED)
+        const finalLed = (overrideLed !== null) ? overrideLed : data.led;
+        if (finalLed !== undefined) updateActiveUI('led', finalLed);
+
+        // 4. Đồng bộ thanh trượt Quạt (FAN)
+        if (data.fan !== undefined) updateActiveUI('fan', data.fan);
+
+        // 5. Đồng bộ nút gạt Servo
+        const finalServo = (overrideServo !== null) ? overrideServo : data.servo;
+        if (finalServo !== undefined) {
+            isServoOpen = (parseInt(finalServo) === 9); 
+            const servoToggle = document.getElementById('servo-toggle');
+            if (servoToggle) {
+                servoToggle.checked = isServoOpen;
+            }
+        }
+
+        // 6. Cập nhật Chart
         const histRes = await fetch(`${API_URL}/history`);
         const hist = await histRes.json();
         tChart.data.datasets[0].data = hist.temp;
         hChart.data.datasets[0].data = hist.humi;
         tChart.update('none');
         hChart.update('none');
-    } catch (e) { console.error("Update failed:", e); }
+    } catch (e) { console.error("Sync failed:", e); }
 }
 
-function setMode(device, val) {
-    updateActiveUI(device, val);
-    fetch(`${API_URL}/control/${device}/${val}`, { method: 'POST' });
+function setMode(device, sliderVal) {
+    let backendVal = parseInt(sliderVal);
+    // Nếu là quạt, thanh trượt hiển thị 0-3 nhưng Backend cần 4-7
+    if (device === 'fan' && backendVal < 4) {
+        backendVal += 4;
+    }
+    
+    updateActiveUI(device, backendVal);
+    fetch(`${API_URL}/control/${device}/${backendVal}`, { method: 'POST' });
 }
 
-function servoControl(val) {
-    fetch(`${API_URL}/control/servo/${val}`, { method: 'POST' });
+function toggleServo(element) {
+    const targetVal = element.checked ? 9 : 8; 
+    fetch(`${API_URL}/control/servo/${targetVal}`, { method: 'POST' });
 }
 
-function updateActiveUI(device, val) {
-    const buttons = document.querySelectorAll(`.mode-btn[data-device="${device}"]`);
-    buttons.forEach(btn => {
-        const displayVal = (device === 'led') ? parseInt(val) : parseInt(val) - 4;
-        if (parseInt(btn.innerText) === displayVal) {
-            btn.classList.add('active');
-        } else {
-            btn.classList.remove('active');
-        }
-    });
+function updateActiveUI(device, backendVal) {
+    // Nếu là quạt, trừ đi 4 để ra giá trị hiển thị trên thanh trượt (0-3)
+    const displayVal = (device === 'led') ? parseInt(backendVal) : parseInt(backendVal) - 4;
+    
+    // Ánh xạ sang Slider (thay vì các nút cũ)
+    const slider = document.getElementById(`${device}-slider`);
+    if (slider) {
+        slider.value = displayVal;
+        // Set data-value để kích hoạt thuộc tính dịch chuyển CSS (.mode-slider-thumb)
+        slider.setAttribute('data-value', displayVal);
+    }
 }
 
 document.getElementById('current-date').innerText = new Date().toLocaleDateString('en-US', { 
