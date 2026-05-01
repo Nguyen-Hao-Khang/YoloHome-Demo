@@ -118,3 +118,33 @@ The authentication and unlocking process follows a strict sequence to ensure all
    - The Web Frontend and AI Backend are designed to be passive observers during the countdown.
    - After the timeout finishes (10s for success, 3s for failure), **YoloBit takes charge and publishes `auth = 10`** (or `11` if motion is still continuously detected) back to the Cloud.
    - The Backend and Frontend receive this updated state and cleanly reset their interfaces back to the default Standby/Idle mode.
+
+## Version 3 fix bug backend demo and add the simulation .zip
+
+### Wokwi Simulation using ESP32
+The repository now includes `YoloHome-simulation.zip` in the project root. Use it to simulate the ESP32-based hardware with Wokwi.
+
+#### Simulation setup
+1. Open https://wokwi.com.
+2. Create a new project using the **ESP32** starter template.
+3. Unzip `YoloHome-simulation.zip` locally.
+4. Upload and overwrite the existing project files in Wokwi.
+5. Make sure to upload all files from the extracted archive (the package contains the three simulation files required by the demo).
+
+#### Running the simulation
+1. Start the backend server from `backend/`:
+   ```bash
+   cd backend
+   python main.py
+   ```
+2. In the Wokwi circuit simulator, press **Run** to start the ESP32 simulation.
+3. Open the Adafruit dashboard link:
+   https://io.adafruit.com/NguyenHaoKhang/dashboards/yolohome
+4. Use that dashboard to control the simulation and view live data from the Wokwi ESP32.
+5. Optionally open the local frontend demo in `fontend/index.html` to view information and control devices indirectly through the web server.
+
+#### Simulation workflow
+- Backend handles MQTT and AI auth coordination.
+- Wokwi simulates the ESP32 hardware sending/receiving Adafruit IO feed updates.
+- The Adafruit dashboard shows the live state of the system.
+- The local frontend demo displays the same data and can serve as an alternate control interface.
