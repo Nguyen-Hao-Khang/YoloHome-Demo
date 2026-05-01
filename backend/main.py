@@ -1,5 +1,6 @@
 import os
 import sqlite3
+import json
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -18,12 +19,13 @@ USER = os.getenv("AIO_USERNAME")
 KEY = os.getenv("AIO_KEY")
 GROUP_NAME = "yolohome" 
 
-# Global state
+# Global state for dashboard (Updated for V2 Authentication)
 stats = {
-    "temp": 0, "humi": 0, "light": 0, 
-    "pir": 0, "led": 0, "fan": 2, "servo": 8, "auth": 10
+    "temp": 0, "humi": 0, "light": 0, "pir": 0,
+    "led": 0, "fan": 2, "servo": 8, "auth": 10
 }
 
+# Database setup
 def init_db():
     conn = sqlite3.connect('database.db')
     cursor = conn.cursor()
@@ -35,17 +37,33 @@ def init_db():
 
 init_db()
 
+# MQTT Callbacks
 def on_message(client, userdata, msg):
+    # msg.topic example: "<AIO_USERNAME>/feeds/yolohome.temp"
     try:
-        topic_path = msg.topic.split('.')[-1].lower() 
-        payload = msg.payload.decode()
-        val = float(payload)
+        topic_tail = msg.topic.split('/')[-1] 
+        topic_path = topic_tail.split('.')[-1].lower() 
+        payload = msg.payload.decode().strip()
         
-        key = "pir" if topic_path == "dist" else topic_path
+        # Clean up payload if Adafruit sends JSON or comma-separated string
+        if payload.startswith('{'):
+            payload = json.loads(payload).get("value", "0")
+        payload = str(payload).split(',')[0]
         
-        if key in stats:
-            stats[key] = val
-            if key in ["temp", "humi"]:
+        # Map legacy 'dist' to 'pir' if needed
+        if topic_path == "dist":
+            topic_path = "pir"
+        
+        if topic_path in stats:
+            print(f"MQTT Inbox: {topic_path} -> {payload}")
+        
+        
+        if topic_path in stats:
+            val = float(payload)
+            stats[topic_path] = val
+            
+            # Only save temp/humi to DB
+            if topic_path in ["temp", "humi"]:
                 conn = sqlite3.connect('database.db')
                 c = conn.cursor()
                 c.execute("INSERT INTO history (temp, humi) VALUES (?, ?)", (stats["temp"], stats["humi"]))
@@ -54,7 +72,7 @@ def on_message(client, userdata, msg):
     except Exception as e:
         print(f"Error processing message: {e}")
 
-# Initialize MQTT Client (using Callback Version 2 for latest paho-mqtt)
+# Initialize MQTT Client
 mqtt = mqtt_client.Client(callback_api_version=mqtt_client.CallbackAPIVersion.VERSION2)
 mqtt.username_pw_set(USER, KEY)
 mqtt.on_message = on_message
@@ -79,18 +97,17 @@ async def get_history():
     cursor.execute("SELECT temp, humi FROM history ORDER BY id DESC LIMIT 10")
     data = cursor.fetchall()
     conn.close()
+    # Reverse to show chronological order on chart
     return {"temp": [r[0] for r in data][::-1], "humi": [r[1] for r in data][::-1]}
 
 @app.post("/control/{device}/{val}")
 async def control(device: str, val: str):
     publish_topic = f"{USER}/feeds/{GROUP_NAME}.{device}"
     mqtt.publish(publish_topic, val)
-    
-    if device in stats:
-        stats[device] = float(val)
+    print(f"Published: {val} to {publish_topic}")
     return {"status": "ok", "topic": publish_topic}
 
-# api for AI trigger auth (state 10, 11, 12, 13, 14)
+# Dedicated API for AI Module to trigger authentication states
 @app.post("/ai_trigger_auth/{auth_val}")
 async def ai_trigger_auth(auth_val: str):
     """
@@ -103,23 +120,9 @@ async def ai_trigger_auth(auth_val: str):
     """
     publish_topic = f"{USER}/feeds/{GROUP_NAME}.auth"
     mqtt.publish(publish_topic, auth_val)
-    stats["auth"] = float(auth_val)
-    
-    # Auto control LED based on auth state
-    led_mode = 0
-    if auth_val == "12":  # Verifying - White light
-        led_mode = 1
-    elif auth_val == "13":  # Success - Green light
-        led_mode = 2
-    elif auth_val == "14":  # Failed - Red light
-        led_mode = 3
-    
-    if led_mode > 0:
-        led_topic = f"{USER}/feeds/{GROUP_NAME}.led"
-        mqtt.publish(led_topic, str(led_mode))
-        stats["led"] = float(led_mode)
-    
-    return {"status": "AI auth triggered", "auth": auth_val, "led": led_mode}
+    print(f"AI Triggered Auth: {auth_val}")
+    return {"status": "AI auth triggered", "auth": auth_val}
 
+# Main entry point
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
